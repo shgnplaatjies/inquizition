@@ -1,0 +1,130 @@
+@startuml 'Game Flow'
+actor Anon as Anon
+actor User as User
+control UserFrontend as UserFrontend
+
+actor Host as Host
+control HostFrontend as HostFrontend
+entity Server as Server
+
+database "MySQL Database" as Db_MySQL
+
+control "Identity Server" as identityServer
+
+Anon -> Server: Open app
+Server -> identityServer: Initiate OAuth flow
+activate identityServer
+identityServer -> Anon: Redirect to login page
+Anon -> identityServer: Enter credentials
+identityServer -> identityServer: Verify credentials
+identityServer -> Server: Return OAuth token
+deactivate identityServer
+activate Server
+Server -> Server: sendFile(page: JourneySelectPage)
+Server -> UserFrontend: render(page: JourneySelectPage)
+deactivate Server
+activate UserFrontend
+UserFrontend -> User: Await user interaction
+User -> UserFrontend: click(button: HostJourney) : ButtonClickEvent
+UserFrontend -> Server: navTo(page: HostDashboard)
+deactivate UserFrontend
+
+activate Server
+Server -> HostFrontend: render(page: HostDashboard)
+deactivate Server
+activate HostFrontend
+
+HostFrontend -> Host: Await user interaction
+HostFrontend <- Host: Click quiz from list : ButtonClickEvent
+HostFrontend -> Server: createNewGame(GameId)
+deactivate HostFrontend
+activate Server
+Server -> Server: registerGame(QuizListId)
+Server -> Db_MySQL: Insert New Game (UserId, QuizListId)
+Db_MySQL -> Server: Return New Game Id
+Server -> HostFrontend: render(page: LobbyPage)
+deactivate Server
+activate HostFrontend
+HostFrontend -> HostFrontend: wait for host to start game
+
+UserFrontend -> User: wait for game to start
+
+Host -> HostFrontend: Press 'start game' button : ButtonClickEvent
+HostFrontend -> Server: startGame(UserId, GameId)
+deactivate HostFrontend
+activate Server
+Server -> Db_MySQL: Update game status to started
+Db_MySQL -> Server: Updated successfully
+Server -> HostFrontend: Send Updated Game Status to Started
+deactivate Server
+
+HostFrontend <- HostFrontend: open socket connection as host(hostId)
+activate HostFrontend
+Server -> HostFrontend: connectToHost(hostId)
+activate Server
+HostFrontend -> Server: Open socket connection for users
+Server -> UserFrontend: Send socket connection details for host
+deactivate Server
+activate UserFrontend
+UserFrontend -> HostFrontend: open socket connection to host(userId)+
+HostFrontend -> UserFrontend: Send connected(userId)
+
+HostFrontend -> HostFrontend: Assign PortID (userId) to this socket connection link it to the initial UserID received.
+
+UserFrontend -> HostFrontend: Await game lobby confirm()
+
+UserFrontend -> HostFrontend: Await game start()
+
+HostFrontend -> UserFrontend: Start game countdown ()
+
+HostFrontend -> UserFrontend: StartGame()
+
+HostFrontend -> UserFrontend: navToQuestionPage()
+
+UserFrontend -> UserFrontend: renderQuestionPage(async {Question})
+
+HostFrontend -> UserFrontend: SendQuestion(question: Question)
+
+UserFrontend -> UserFrontend: Renders question
+
+UserFrontend -> UserFrontend: Allow the user to select an answer
+
+UserFrontend -> HostFrontend: UserSubmitsAnswer(answer: Answer)
+
+HostFrontend -> HostFrontend: RecordUserAnswer(userId, question: Question, answer: Answer)
+
+HostFrontend -> UserFrontend: SendQuestion(question: Question)
+
+HostFrontend -> UserFrontend: RenderQuestion(question: Question)
+
+UserFrontend -> UserFrontend: Allow the user to select an answer
+
+UserFrontend -> HostFrontend: UserSubmitsAnswer(answer: Answer)
+
+HostFrontend -> HostFrontend: RecordUserAnswer(userId, question: Question, answer: Answer)
+
+HostFrontend -> Db_MySQL: CalculateScores()
+
+HostFrontend -> UserFrontend: displayFinalResults(gameResult: GameResult)
+
+UserFrontend -> UserFrontend: renderFinalResults(gameResult: GameResult)
+
+HostFrontend -> UserFrontend: Close socket connection
+
+UserFrontend -> UserFrontend: Return to the dashboard as an anonymous user
+
+UserFrontend -> Server: Clear the user's game-related data
+activate Server
+Server -> UserFrontend: Confirm successful exit and reset
+deactivate Server
+
+UserFrontend -> HostFrontend: Confirm successful exit and reset
+deactivate UserFrontend
+
+HostFrontend -> HostFrontend: Close socket connection
+deactivate HostFrontend
+
+HostFrontend -> HostFrontend: navToDashboardAsAnonymousUser()
+UserFrontend -> UserFrontend: navToDashboardAsAnonymousUser()
+
+@enduml

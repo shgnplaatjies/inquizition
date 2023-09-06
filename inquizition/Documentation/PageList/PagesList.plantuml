@@ -1,0 +1,169 @@
+@startuml 'Page Connections Diagram
+allowmixing
+
+json Login {
+   "buttons": [
+      "login"
+    ],
+   "inputs": [
+      "email",
+      "username",
+      "password"
+    ]
+}
+
+json Registration {
+   "buttons": [
+      "Register"
+    ],
+   "inputs": [
+      "firstName",
+      "lastName",
+      "email",
+      "username",
+      "password",
+      "confirmPassword"
+    ]
+}
+
+json JourneySelection {
+   "buttons": [
+      "hostJourney",
+      "playerJourney"
+    ]
+}
+
+json SelectQuiz {
+   "buttons": [
+      "confirmGame"
+    ],
+   "quizListCards": [
+      "quiz[ 0 ]",
+      "quiz[ 1 ]",
+      "quiz[ ... ]"
+    ]
+}
+
+json HostLobby {
+   "buttons": [
+      "removeSelectedPlayer",
+      "acceptLobby",
+      "startCountdown"
+    ],
+    "playerList" : [
+      "selectPlayerClickable"
+    ]
+}
+
+
+
+json HostCountdown {
+    "buttons": [
+        "cancelGame"
+    ],
+   "component": [
+      "countdownAnimation"
+    ]
+}
+
+json HostGameplay {
+   "buttons": [
+      "nextQuestion",
+      "leaderboard",
+      "endGame"
+    ]
+}
+
+json JoinGame {
+   "buttons": [
+      "joinGame",
+      "enterQRCode",
+      "submitGameID"
+    ],
+    "inputs": [
+      "gameID"
+    ]
+}
+
+json GameLobby {
+   "buttons": [
+      "quitGame"
+    ]
+}
+
+json PlayerCountdown {
+    "element": [
+        "countdownAnimation"
+    ]
+}
+
+json PlayerGameplay {
+   "buttons": [
+      "Next Question",
+      "Game Over"
+    ],
+    "answersOptionsList": [
+        "answerOption[0]",
+        "answerOption[1]",
+        "answerOption[...]"
+    ]
+}
+
+json GameOver {
+   "element": [
+      "winAnimation",
+      "lossAnimation"
+    ]
+}
+
+json Leaderboard {
+   "buttons": [
+      "close"
+    ]
+}
+
+Login --> Registration : onClick{ button: register }
+Login --> JourneySelection : eventListener{ event: "Login Successful" }
+
+Registration --> Login : onClick{ button: login }
+Registration --> Login : eventListener{ event: "Registration Successful" }
+
+JourneySelection --> SelectQuiz : onClick{ button: hostJourney }
+
+SelectQuiz --> HostLobby : onClick{ button: quizListCard[index] }
+
+HostLobby --> HostLobby : eventListener{ event: async await "Player Joined" }
+HostLobby --> HostLobby : onClick{ button: removeSelectedPlayer }
+HostLobby --> HostLobby : onClick{ button: acceptLobby }
+
+HostLobby --> HostCountdown : onClick{ button: startCountdown }
+
+HostCountdown --> HostCountdown : func{ bool: countdownAnimation() }
+HostCountdown --> HostGameplay : eventListener{ event: "Host Countdown Animation Return" }
+
+HostGameplay --> HostGameplay : onClick{ button: releaseNextQuestion }
+HostGameplay --> Leaderboard : onClick{ button: endGame }
+
+Leaderboard --> JourneySelection : onClick{ button: closeButton }
+
+JourneySelection --> JoinGame : onClick{ button: playerJourney }
+
+JoinGame --> JoinGame : eventListener{ event: async await "Host Confirmed Game" }
+JoinGame --> GameLobby : eventListener{ event: "Host Registered Game" }
+
+GameLobby --> GameLobby : eventListener{ event: async await "Host Countdown Return" }
+
+GameLobby --> PlayerCountdown : eventListener{ event: "Host Countdown Returned true" }
+
+PlayerCountdown --> PlayerCountdown : func{ bool: countdownAnimation() }
+
+PlayerCountdown --> PlayerGameplay : eventListener{ event: "Countdown Animation Returned true" }
+
+PlayerGameplay --> PlayerGameplay : onClick{ button: answerOption[ index: i ] }
+PlayerGameplay --> GameOver : eventListener{event: "Host Ended Game"}
+
+GameOver --> GameOver : func{ bool: gameOverAnimation() }
+GameOver --> Leaderboard : onClick{ button: closeButton}
+
+Leaderboard --> JourneySelection : onClick{ button: closeButton}
+@enduml

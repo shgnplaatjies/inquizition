@@ -1,0 +1,38 @@
+@startuml 'State Machine Diagram: Host Creates Game
+
+[*] --> SplashScreen : Navigates to URL
+SplashScreen: Identity server checks if user is logged in
+SplashScreen --> LoginScreen : Redirect if user session is not found
+
+SplashScreen --> JourneySelectionScreen : Redirect if user session is found
+
+LoginScreen --> RegisterScreen : Clicks register
+
+RegisterScreen --> LoginScreen : Clicks login button\nClicks register button
+
+LoginScreen --> JourneySelectionScreen : Login Successful
+
+JourneySelectionScreen --> SelectQuizScreen : Clicks host journey button
+SelectQuizScreen --> HostLobbyScreen : Clicks a quiz card
+
+HostLobbyScreen --> HostLobbyScreen : Wait for players to join
+HostLobbyScreen --> HostLobbyScreen : Kick players if needed
+HostLobbyScreen --> HostLobbyScreen : Accept lobby
+
+HostLobbyScreen --> HostCountdownScreen : Click "Start Countdown"
+
+HostCountdownScreen --> HostCountdownScreen : Countdown animation
+HostCountdownScreen --> HostGameplayScreen : Countdown complete
+
+HostGameplayScreen --> QuestionScreen : Display Question
+QuestionScreen --> QuestionScreen : Wait for host to release question
+QuestionScreen --> QuestionScreen : User selects answer
+QuestionScreen --> HostGameplayScreen : All answers submitted
+
+HostGameplayScreen --> QuestionScreen : If more questions, show next question
+HostGameplayScreen --> LeaderboardScreen : If no more questions
+
+LeaderboardScreen --> LeaderboardScreen : Show leaderboard animation
+LeaderboardScreen --> JourneySelectionScreen : Click to return to journey select
+
+@enduml

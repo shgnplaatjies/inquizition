@@ -1,0 +1,37 @@
+@startuml 'State Machine Diagram: Game Player Joins Game
+
+[*] --> SplashScreen : Navigates to URL
+SplashScreen: Identity server checks if user is logged in
+SplashScreen --> LoginScreen : Redirect if user session is not found
+
+SplashScreen --> JourneySelectionScreen : Redirect if user session is found
+
+LoginScreen --> RegisterScreen : Clicks register
+
+RegisterScreen --> LoginScreen : Clicks login button\nClicks register button
+
+LoginScreen --> JourneySelectionScreen : Login Successful
+
+JourneySelectionScreen --> SelectQuizScreen : Clicks player journey button
+SelectQuizScreen --> JoinGameScreen : Clicks a quiz card
+
+JoinGameScreen --> JoinGameScreen : Wait for game to join
+JoinGameScreen --> JoinGameScreen : Accept game
+
+JoinGameScreen --> GameLobbyScreen : Click "Join Game"
+
+GameLobbyScreen --> GameLobbyScreen : Wait for host to start game
+GameLobbyScreen --> GamePlayScreen : Game started
+
+GamePlayScreen --> GamePlayScreen : Display Question
+GamePlayScreen --> GamePlayScreen : Wait for host to release question
+GamePlayScreen --> GamePlayScreen : User selects answer
+GamePlayScreen --> GamePlayScreen : All answers submitted
+
+GamePlayScreen --> GamePlayScreen : If more questions, show next question
+GamePlayScreen --> GameOverScreen : If no more questions
+
+GameOverScreen --> GameOverScreen : Show game over animation
+GameOverScreen --> JourneySelectionScreen : Click to return to journey select
+
+@enduml
